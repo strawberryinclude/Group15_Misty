@@ -153,9 +153,10 @@ class SupportiveMemoryGame:
         show_random_eyes(self.misty, NEUTRAL_EYES)
         self.misty.speak(
             "Hi! My name is Misty. We're going to play a memory game together. "
-            "I will show you a sequence of colors with my lights. "
-            "Your job is to remember the order and repeat it. "
-            "We'll take it step by step!"
+            "I will show you a sequence of colors with the light on my chest. "
+            "Your job is to remember the order and repeat it back to me. "
+            "My chest will glow white inbetween each color."
+            "Don't worry! We'll take it step by step!"
         )
 
     def playerWon(self):
