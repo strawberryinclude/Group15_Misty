@@ -1,6 +1,6 @@
-# Supportive.py
 from mistyPy.Robot import Robot
 import time
+import random
 
 ROBOT_IP = "192.168.1.237"
 
@@ -35,6 +35,26 @@ def flash_sequence(misty, sequence, on_time=1.0, white_time=0.5):
         time.sleep(on_time)
         set_led(misty, "white")
         time.sleep(white_time)
+
+
+# -----------------------------
+# EYE HELPERS
+# -----------------------------
+
+HAPPY_EYES = [
+    "e_Joy.jpg",
+    "e_Joy2.jpg",
+    "e_JoyGoofy.jpg",
+]
+
+NEUTRAL_EYES = [
+    "e_DefaultContent.jpg",
+]
+
+def show_random_eyes(misty, eye_list):
+    """Display a random eye image from the given list."""
+    filename = random.choice(eye_list)
+    misty.display_image(filename, 1)  # alpha=1 (fully opaque)
 
 
 # -----------------------------
@@ -96,89 +116,121 @@ class SupportiveMemoryGame:
     # ------------- GAME LOGIC -------------
 
     def doRound(self, difficulty, round_number):
-        """
-        Plays the LED sequence for a given difficulty and round.
-        round_number is 1-based.
-        """
+        """Plays the LED sequence for a given difficulty and round."""
         sequences = DIFFICULTY_SEQUENCES.get(difficulty)
         if not sequences:
+            show_random_eyes(self.misty, NEUTRAL_EYES)
             self.misty.speak("Oops, I don't have that difficulty set up yet.")
             return
 
         index = round_number - 1
         if index < 0 or index >= len(sequences):
-            self.misty.speak("Hmm, that round does not exist for this difficulty.")
+            show_random_eyes(self.misty, NEUTRAL_EYES)
+            self.misty.speak("Hmm, that round doesn't exist for this difficulty.")
             return
 
         sequence = sequences[index]
-        self.misty.speak(
-            f"Okay, here comes round {round_number} on difficulty {difficulty}. "
-            "Watch the colors carefully!"
+
+        # Varied supportive phrasing
+        templates = [
+            "Okay, here comes round {round} on difficulty {difficulty}! Watch closely.",
+            "Get ready for round {round} on difficulty {difficulty}. Try to remember the colors!",
+            "Round {round} on difficulty {difficulty}. I'll show you the sequence now!"
+        ]
+        line = random.choice(templates).format(
+            round=round_number, difficulty=difficulty
         )
 
-        # 🔹 NEW: wait a bit so she finishes speaking before LEDs start
-        time.sleep(TALK_DELAY)
+        show_random_eyes(self.misty, HAPPY_EYES)
+        self.misty.speak(line)
 
+        time.sleep(TALK_DELAY)
         flash_sequence(self.misty, sequence)
 
     # ------------- SUPPORTIVE DIALOGUES -------------
 
     def playerStart(self):
+        show_random_eyes(self.misty, NEUTRAL_EYES)
         self.misty.speak(
-            "Hi! My name is Misty. "
-            "We're going to play a memory game together. "
+            "Hi! My name is Misty. We're going to play a memory game together. "
             "I will show you a sequence of colors with my lights. "
             "Your job is to remember the order and repeat it. "
-            "Between each color, I go back to white so you know it's a new color. "
-            "Don't worry if it feels tricky, we'll take it step by step!"
+            "We'll take it step by step!"
         )
 
     def playerWon(self):
-        self.misty.speak(
-            "Wow, you did it! You completed the whole sequence. "
-            "I'm really impressed with your memory. "
-            "Thank you for playing with me!"
-        )
+        lines = [
+            "Wow, you did it! You completed the whole sequence. I'm really impressed!",
+            "Amazing work! You got the entire sequence right!",
+            "You nailed it! That was perfect memory work!"
+        ]
+        show_random_eyes(self.misty, HAPPY_EYES)
+        self.misty.speak(random.choice(lines))
 
     def playerCorrect(self):
-        self.misty.speak(
-            "Nice job! That was the correct sequence. "
-            "You're doing great, keep it up!"
-        )
+        lines = [
+            "Nice job! That's the correct sequence!",
+            "Yes, exactly right! You're doing really well.",
+            "Correct! You remembered that perfectly!"
+        ]
+        show_random_eyes(self.misty, HAPPY_EYES)
+        self.misty.speak(random.choice(lines))
 
     def readyForNext(self):
-        self.misty.speak(
-            "Are you ready for the next round? "
-            "It will be a little bit more challenging, "
-            "but I believe in you!"
-        )
+        lines = [
+            "Ready for the next round? You're doing great!",
+            "Shall we try the next round? I believe in you!",
+            "If you're ready, we can continue to the next round!"
+        ]
+        show_random_eyes(self.misty, NEUTRAL_EYES)
+        self.misty.speak(random.choice(lines))
 
     def playerLost(self):
-        self.misty.speak(
-            "That wasn't quite the right sequence this time, "
-            "but that's okay! This game is meant to be challenging. "
-            "If you want, we can try again and see how far you get."
-        )
+        lines = [
+            "That sequence was tricky, but that's okay! We can try again.",
+            "No worries, that one was tough. Want to give it another go?",
+            "It didn’t work this time, but I know you can get it next round!"
+        ]
+        show_random_eyes(self.misty, NEUTRAL_EYES)
+        self.misty.speak(random.choice(lines))
 
     def playAgainQuestion(self):
-        self.misty.speak(
-            "Would you like to play again? "
-            "We can try the same difficulty or pick a new one together."
-        )
+        lines = [
+            "Would you like to play again?",
+            "Do you want to try another round?",
+            "Would you like to go again?"
+        ]
+        show_random_eyes(self.misty, NEUTRAL_EYES)
+        self.misty.speak(random.choice(lines))
 
     def whatDifficulty(self):
-        self.misty.speak(
-            "Which difficulty would you like to play? "
-            "You can choose a number from one to five. "
-            "One is easiest and five is the most challenging."
-        )
+        lines = [
+            "Which difficulty would you like? One to five!",
+            "Pick a difficulty between one and five!",
+            "Tell me a difficulty: one is easiest, five is hardest!"
+        ]
+        show_random_eyes(self.misty, NEUTRAL_EYES)
+        self.misty.speak(random.choice(lines))
 
-    # 🔹 NEW: “Sorry I didn’t quite hear what you said”
     def didntHear(self):
-        self.misty.speak(
-            "Sorry, I didn't quite hear what you said. "
-            "Could you please repeat that for me?"
-        )
+        lines = [
+            "Sorry, I didn't quite hear that. Could you repeat it?",
+            "I think I missed that. Can you say it again?",
+            "Oops, I didn't catch that. Could you repeat yourself?"
+        ]
+        show_random_eyes(self.misty, NEUTRAL_EYES)
+        self.misty.speak(random.choice(lines))
+
+    # ------------- NEW: WATER BREAK -------------
+
+    def waterBreak(self):
+        lines = [
+            "Hey, how about we take a little sip of water?",
+            "Quick pause! This could be a good moment to have a drink of water.",
+            "Before we continue, maybe take a small sip of water. It can help you stay focused!"
+        ]
+        show_random_eyes(self.misty, NEUTRAL_EYES)
+        self.misty.speak(random.choice(lines))
 
 
 # -----------------------------
@@ -188,29 +240,16 @@ class SupportiveMemoryGame:
 if __name__ == "__main__":
     game = SupportiveMemoryGame()
 
-    # Command list:
-    # 1 -> Intro / explain game
-    # 2 -> Play a round (requires: difficulty, round)
-    # 3 -> Player was correct
-    # 4 -> Player won
-    # 5 -> Player lost
-    # 6 -> Ask to play again
-    # 7 -> Ask for difficulty
-    # 8 -> "Sorry, I didn't quite hear what you said"
-
     def run_command(cmd, args):
         """Dispatch based on command + optional arguments."""
         if cmd == 1:
             game.playerStart()
 
         elif cmd == 2:
-            # Expect: args[0] = difficulty, args[1] = round_number
             if len(args) < 2:
-                print("Command 2 needs: difficulty round_number, e.g. '2 1 4'")
+                print("Usage: 2 <difficulty> <round>")
                 return
-            difficulty = args[0]
-            round_number = args[1]
-            print(f"Running round {round_number} on difficulty {difficulty}")
+            difficulty, round_number = args
             game.doRound(difficulty, round_number)
 
         elif cmd == 3:
@@ -231,42 +270,34 @@ if __name__ == "__main__":
         elif cmd == 8:
             game.didntHear()
 
+        elif cmd == 9:
+            game.waterBreak()
+
         else:
             print("Unknown command.")
 
     while True:
-        print("\n=== Supportive Mode – Wizard Commands ===")
-        print("1: Intro / explain the game")
-        print("2: Play a round – usage: 2 <difficulty 1-5> <round>")
-        print("3: Player was correct")
+        print("\n=== Supportive Wizard Commands ===")
+        print("1: Intro")
+        print("2: Play round — 2 <difficulty> <round>")
+        print("3: Player correct")
         print("4: Player won")
         print("5: Player lost")
-        print("6: Ask to play again")
-        print("7: Ask for difficulty")
-        print("8: Say 'Sorry, I didn't quite hear what you said'")
+        print("6: Play again question")
+        print("7: Ask difficulty")
+        print("8: Didn't hear")
+        print("9: Suggest water break")
         print("0: Quit")
 
-        line = input("Type command and optional args (e.g. '2 1 4'): ").strip()
+        line = input("> ").strip()
         if not line:
             continue
 
         parts = line.split()
-        try:
-            cmd = int(parts[0])
-        except ValueError:
-            print("First value must be a number.")
-            continue
+        cmd = int(parts[0]) if parts[0].isdigit() else -1
 
         if cmd == 0:
-            print("Exiting wizard.")
             break
 
-        # Parse remaining parts as integers (for difficulty, round, etc.)
-        args = []
-        for p in parts[1:]:
-            try:
-                args.append(int(p))
-            except ValueError:
-                print(f"Ignoring non-integer argument: {p}")
-
+        args = [int(x) for x in parts[1:] if x.isdigit()]
         run_command(cmd, args)
