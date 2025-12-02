@@ -18,42 +18,48 @@ COLOR_MAP = {
     "red":    (255, 0, 0),
     "yellow": (255, 255, 0),
     "purple": (128, 0, 128),
+    "cyan":   (0, 255, 255), # Authoritative idle color
 }
 
 def set_led(misty, color_name):
     r, g, b = COLOR_MAP.get(color_name, COLOR_MAP["white"])
     misty.change_led(r, g, b)
 
+def set_neutral_led(misty):
+    """Sets LED to a neutral, authoritative color (Cyan) for standby."""
+    misty.change_led(0, 255, 255)
 
 def flash_sequence(misty, sequence, on_time=1.0, white_time=0.5):
     """
     sequence: list of color names, e.g. ["green", "blue", "blue"]
     Between each color Misty goes back to white (*).
+    After sequence, returns to Cyan (Neutral).
     """
     for color in sequence:
         set_led(misty, color)
         time.sleep(on_time)
         set_led(misty, "white")
         time.sleep(white_time)
+    
+    # Return to authoritative neutral state
+    set_neutral_led(misty)
 
 
 # -----------------------------
 # EYE HELPERS
 # -----------------------------
 
-HAPPY_EYES = [
-    "e_Joy.jpg",
-    "e_Joy2.jpg",
-    "e_JoyGoofy.jpg",
-]
-
+# Authoritative eyes: Neutral, Focused, Unimpressed
+# NO happy eyes in this version.
 NEUTRAL_EYES = [
     "e_DefaultContent.jpg",
+    "e_Contempt.jpg",     # Slightly stricter/evaluative look
+    "e_SystemBlack.jpg",  # Very robotic/cold look
 ]
 
-def show_random_eyes(misty, eye_list):
-    """Display a random eye image from the given list."""
-    filename = random.choice(eye_list)
+def show_neutral_eyes(misty):
+    """Display a random neutral/serious eye image."""
+    filename = random.choice(NEUTRAL_EYES)
     misty.display_image(filename, 1)  # alpha=1 (fully opaque)
 
 
@@ -106,12 +112,15 @@ DIFFICULTY_SEQUENCES = {
 
 
 # -----------------------------
-# SUPPORTIVE GAME CLASS
+# AUTHORITATIVE GAME CLASS
 # -----------------------------
 
-class SupportiveMemoryGame:
+class AuthoritativeMemoryGame:
     def __init__(self, ip=ROBOT_IP):
         self.misty = Robot(ip)
+        # Initialize with neutral state
+        set_neutral_led(self.misty)
+        show_neutral_eyes(self.misty)
 
     # ------------- GAME LOGIC -------------
 
@@ -119,136 +128,143 @@ class SupportiveMemoryGame:
         """Plays the LED sequence for a given difficulty and round."""
         sequences = DIFFICULTY_SEQUENCES.get(difficulty)
         if not sequences:
-            show_random_eyes(self.misty, NEUTRAL_EYES)
-            self.misty.speak("Oops, I don't have that difficulty set up yet.")
+            show_neutral_eyes(self.misty)
+            self.misty.speak("Error. Difficulty level not found.")
             return
 
         index = round_number - 1
         if index < 0 or index >= len(sequences):
-            show_random_eyes(self.misty, NEUTRAL_EYES)
-            self.misty.speak("Hmm, that round doesn't exist for this difficulty.")
+            show_neutral_eyes(self.misty)
+            self.misty.speak("Error. Round index out of bounds.")
             return
 
         sequence = sequences[index]
 
-        # Varied supportive phrasing
+        # Concise, directive phrasing
         templates = [
-            "Okay, here comes round {round} on difficulty {difficulty}! Watch closely.",
-            "Get ready for round {round} on difficulty {difficulty}. Try to remember the colors!",
-            "Round {round} on difficulty {difficulty}. I'll show you the sequence now!"
+            "Initiating round {round}. Difficulty {difficulty}. Observe.",
+            "Round {round}. Difficulty level {difficulty}. Sequence starting.",
+            "Attention. Round {round}, difficulty {difficulty}. Execute observation."
         ]
         line = random.choice(templates).format(
             round=round_number, difficulty=difficulty
         )
 
-        show_random_eyes(self.misty, HAPPY_EYES)
+        show_neutral_eyes(self.misty)
+        set_neutral_led(self.misty) # Ensure we are in neutral state before speaking
         self.misty.speak(line)
 
         time.sleep(TALK_DELAY)
         flash_sequence(self.misty, sequence)
 
-    # ------------- SUPPORTIVE DIALOGUES -------------
+    # ------------- AUTHORITATIVE DIALOGUES -------------
 
     def playerStart(self):
-        show_random_eyes(self.misty, NEUTRAL_EYES)
-        set_led(self.misty, "white")
+        show_neutral_eyes(self.misty)
+        set_neutral_led(self.misty)
         self.misty.speak(
-            "Hi! My name is Misty. We're going to play a memory game together. "
-            "I will show you a sequence of colors with the light on my chest. "
-            "Your job is to remember the order and repeat it back to me. "
-            "My chest will glow white inbetween each color. "
-            "Don't worry! We'll take it step by step!"
-            "Are you ready to start?"
+            "Memory Assessment Protocol initiated. "
+            "I will display a color sequence. "
+            "You are required to memorize and repeat it. "
+            "Prepare for the first trial."
         )
 
     def playerWon(self):
         lines = [
-            "Wow, you did it! You completed the whole sequence. I'm really impressed!",
-            "Amazing work! You got the entire sequence right!",
-            "You nailed it! That was perfect memory work!"
+            "Sequence verified. All inputs correct. Protocol complete.",
+            "Performance adequate. Task finished. Final result: Success.",
+            "Objective achieved. All sequences replicated."
         ]
-        show_random_eyes(self.misty, HAPPY_EYES)
+        show_neutral_eyes(self.misty)
         self.misty.speak(random.choice(lines))
 
     def playerCorrect(self):
         lines = [
-            "Nice job! That's the correct sequence!",
-            "Yes, exactly right! You're doing really well.",
-            "Correct! You remembered that perfectly!"
+            "Correct.",
+            "Sequence matched.",
+            "Input accepted.",
+            "Accurate."
         ]
-        show_random_eyes(self.misty, HAPPY_EYES)
+        show_neutral_eyes(self.misty)
         self.misty.speak(random.choice(lines))
 
     def readyForNext(self):
         lines = [
-            "Ready for the next round? You're doing great!",
-            "Shall we try the next round? I believe in you!",
-            "If you're ready, we can continue to the next round!"
+            "Proceeding to next round.",
+            "Loading next sequence.",
+            "Next trial initiating."
         ]
-        show_random_eyes(self.misty, NEUTRAL_EYES)
+        show_neutral_eyes(self.misty)
         self.misty.speak(random.choice(lines))
 
     def playerLost(self):
         lines = [
-            "That sequence was tricky, but that's okay! We can try again.",
-            "No worries, that one was tough. Want to give it another go?",
-            "It didn’t work this time, but I know you can get it next round!"
+            "Incorrect sequence.",
+            "Error detected in playback.",
+            "Sequence mismatch. Task failed.",
+            "Input invalid."
         ]
-        show_random_eyes(self.misty, NEUTRAL_EYES)
+        show_neutral_eyes(self.misty)
         self.misty.speak(random.choice(lines))
 
     def playAgainQuestion(self):
         lines = [
-            "Would you like to play again?",
-            "Do you want to try another round?",
-            "Would you like to go again?"
+            "Restart protocol?",
+            "Acknowledge to restart task.",
+            "Reset system for new trial?"
         ]
-        show_random_eyes(self.misty, NEUTRAL_EYES)
+        show_neutral_eyes(self.misty)
         self.misty.speak(random.choice(lines))
 
     def whatDifficulty(self):
         lines = [
-            "Which difficulty would you like? One to five!",
-            "Pick a difficulty between one and five!",
-            "Tell me a difficulty: one is easiest, five is hardest!"
+            "Select difficulty level: 1 to 5.",
+            "State desired challenge level, 1 to 5.",
+            "What difficulty level? Choose 1 to 5."
         ]
-        show_random_eyes(self.misty, NEUTRAL_EYES)
+        show_neutral_eyes(self.misty)
         self.misty.speak(random.choice(lines))
 
     def didntHear(self):
         lines = [
-            "Sorry, I didn't quite hear that. Could you repeat it?",
-            "I think I missed that. Can you say it again?",
-            "Oops, I didn't catch that. Could you repeat yourself?"
+            "Input unclear. Repeat.",
+            "Audio not detected. State command again.",
+            "Transmission failed. Repeat."
         ]
-        show_random_eyes(self.misty, NEUTRAL_EYES)
+        show_neutral_eyes(self.misty)
         self.misty.speak(random.choice(lines))
 
-    # ------------- WATER BREAK -------------
+    # ------------- MODIFIED WATER BREAK -------------
 
     def waterBreak(self):
+        # Mandatory maintenance style
         lines = [
-            "Hey, how about we take a little sip of water?",
-            "Quick pause! This could be a good moment to have a drink of water.",
-            "Before we continue, maybe take a small sip of water. It can help you stay focused!"
+            "Hydration break initiated. Consume water now to maintain cognitive efficiency.",
+            "Performance check. Hydration required. Drink water immediately.",
+            "Mandatory interval. Water consumption required for optimal function."
         ]
-        show_random_eyes(self.misty, NEUTRAL_EYES)
+        show_neutral_eyes(self.misty)
         self.misty.speak(random.choice(lines))
 
+    # ------------- NEW: ACKNOWLEDGE (Cmd 11) -------------
+    
     def acknowledge(self):
+        # Replaces "Cool!", "Awesome!" with neutral confirmations
         lines = [
-            "Cool!",
-            "Great!",
-            "Awesome!",
-            "Nice!"
+            "Acknowledged.",
+            "Noted.",
+            "Input received.",
+            "Proceed."
         ]
-        show_random_eyes(self.misty, HAPPY_EYES)
+        show_neutral_eyes(self.misty)
         self.misty.speak(random.choice(lines))
+
+    # ------------- NEW: GOODBYE (Cmd 00) -------------
 
     def goodbye(self):
-        
-        self.misty.speak("Okay! It was really fun playing with you. Have a wonderful rest of your day. Goodbye!")
-        show_random_eyes(self.misty, NEUTRAL_EYES)
+        # Replaces "Have a wonderful day!" with protocol termination
+        show_neutral_eyes(self.misty)
+        self.misty.speak("Session terminated. Powering down interaction protocol.")
 
 
 # -----------------------------
@@ -256,7 +272,7 @@ class SupportiveMemoryGame:
 # -----------------------------
 
 if __name__ == "__main__":
-    game = SupportiveMemoryGame()
+    game = AuthoritativeMemoryGame()
 
     def run_command(cmd, args):
         """Dispatch based on command + optional arguments."""
@@ -269,7 +285,6 @@ if __name__ == "__main__":
                 return
             difficulty, round_number = args
 
-            # Print the correct sequence for the wizard
             sequences = DIFFICULTY_SEQUENCES.get(difficulty)
             if sequences is None:
                 print(f"No sequences defined for difficulty {difficulty}.")
@@ -284,7 +299,6 @@ if __name__ == "__main__":
             print(f"Difficulty {difficulty}, round {round_number}")
             print("Correct sequence:", ", ".join(sequence))
 
-            # Then actually play the round on Misty
             game.doRound(difficulty, round_number)
 
         elif cmd == 3:
@@ -318,18 +332,18 @@ if __name__ == "__main__":
             print("Unknown command.")
 
     while True:
-        print("\n=== Supportive Wizard Commands ===")
-        print("1: Intro")
+        print("\n=== AUTHORITATIVE Wizard Commands ===")
+        print("1: Intro (Protocol Start)")
         print("2: Play round — 2 <difficulty> <round> (also prints sequence)")
-        print("3: Player correct")
-        print("4: Player won")
-        print("5: Player lost")
-        print("6: Play again question")
+        print("3: Player correct (Verified)")
+        print("4: Player won (Protocol Complete)")
+        print("5: Player lost (Error)")
+        print("6: Restart question")
         print("7: Ask difficulty")
-        print("8: Didn't hear")
-        print("9: Suggest water break")
-        print("11: Simple acknowledgement (Cool / Great / Awesome)")
-        print("99: Say goodbye")
+        print("8: Input unclear")
+        print("9: MANDATORY WATER BREAK")
+        print("11: Acknowledge (Noted/Proceed)")
+        print("99: Terminate Session")
         print("0: EXIT WIZARD MODE")
 
         line = input("> ").strip()
