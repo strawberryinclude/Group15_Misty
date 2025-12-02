@@ -155,7 +155,7 @@ class SupportiveMemoryGame:
             "Hi! My name is Misty. We're going to play a memory game together. "
             "I will show you a sequence of colors with the light on my chest. "
             "Your job is to remember the order and repeat it back to me. "
-            "My chest will glow white inbetween each color."
+            "My chest will glow white inbetween each color. "
             "Don't worry! We'll take it step by step!"
         )
 
@@ -222,7 +222,7 @@ class SupportiveMemoryGame:
         show_random_eyes(self.misty, NEUTRAL_EYES)
         self.misty.speak(random.choice(lines))
 
-    # ------------- NEW: WATER BREAK -------------
+    # ------------- WATER BREAK -------------
 
     def waterBreak(self):
         lines = [
@@ -231,6 +231,18 @@ class SupportiveMemoryGame:
             "Before we continue, maybe take a small sip of water. It can help you stay focused!"
         ]
         show_random_eyes(self.misty, NEUTRAL_EYES)
+        self.misty.speak(random.choice(lines))
+
+    # ------------- NEW: SIMPLE ACKNOWLEDGEMENT -------------
+
+    def acknowledge(self):
+        lines = [
+            "Cool!",
+            "Great!",
+            "Awesome!",
+            "Nice!"
+        ]
+        show_random_eyes(self.misty, HAPPY_EYES)
         self.misty.speak(random.choice(lines))
 
 
@@ -252,7 +264,7 @@ if __name__ == "__main__":
                 return
             difficulty, round_number = args
 
-            # 🔹 NEW: print the correct sequence for the wizard
+            # Print the correct sequence for the wizard
             sequences = DIFFICULTY_SEQUENCES.get(difficulty)
             if sequences is None:
                 print(f"No sequences defined for difficulty {difficulty}.")
@@ -291,6 +303,9 @@ if __name__ == "__main__":
         elif cmd == 9:
             game.waterBreak()
 
+        elif cmd == 11:
+            game.acknowledge()
+
         else:
             print("Unknown command.")
 
@@ -305,6 +320,7 @@ if __name__ == "__main__":
         print("7: Ask difficulty")
         print("8: Didn't hear")
         print("9: Suggest water break")
+        print("11: Simple acknowledgement (Cool / Great / Awesome)")
         print("0: Quit")
 
         line = input("> ").strip()
